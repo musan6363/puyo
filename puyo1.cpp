@@ -2,6 +2,7 @@
 //2020/04/17
 
 #include <curses.h>
+#include <stdlib.h> // rand関数
 
 //ぷよの色を表すの列挙型
 //NONEが無し，RED,BLUE,..が色を表す
@@ -73,14 +74,32 @@ void SetValue(unsigned int y, unsigned int x, puyocolor value)
 }
 
 
+// ランダムにぷよを選択
+puyocolor RandomSelectPuyo()
+{
+	puyocolor newpuyo;
+	// puyocolorからランダムに選択する．
+	// YELLOWは末尾の要素でenumの長さを調べるために利用．
+	// NONE以外のぷよを返す．
+	do
+	{
+		newpuyo = static_cast<puyocolor>(rand() % (YELLOW+1));
+	}while(newpuyo == NONE);
+
+	return newpuyo;
+}
+
+
 //盤面に新しいぷよ生成
 void GeneratePuyo()
 {
 	puyocolor newpuyo1;
-	newpuyo1 = RED;
+	// newpuyo1 = RED;
+	newpuyo1 = RandomSelectPuyo();
 
 	puyocolor newpuyo2;
-	newpuyo2 = BLUE;
+	// newpuyo2 = BLUE;
+	newpuyo2 = RandomSelectPuyo();
 
 	SetValue(0, 5, newpuyo1);
 	SetValue(0, 6, newpuyo2);
@@ -327,7 +346,8 @@ int main(int argc, char **argv){
 	GeneratePuyo();	//最初のぷよ生成
 
 	int delay = 0;
-	int waitCount = 20000;
+	// int waitCount = 20000;
+	int waitCount = 2000;
 
 	int puyostate = 0;
 
