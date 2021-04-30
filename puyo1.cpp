@@ -36,7 +36,7 @@ private:
 		this->data = NULL;
 	}
 
-	// ランダムにぷよを選択
+	// ランダムにぷよを選択(GeneratePuyoから呼ばれる)
 	puyocolor RandomSelectPuyo() const
 	{
 		puyocolor newpuyo;
@@ -53,21 +53,31 @@ private:
 
 public:
 	// コンストラクタ
-	PuyoArray(unsigned int line, unsigned int column)
+	PuyoArray()
 	{
-		// 元ChangeSize
-		//盤面サイズ変更
-		this->Release();
+		this->data = NULL;
+		this->data_line = 0;
+		this->data_column = 0;
+		this->data_size = 0;
+	}
 
-		//新しいサイズでメモリ確保
-		this->data = new puyocolor[line * column];
+	// デストラクタ
+	~PuyoArray()
+	{
+		this->Release();
+	}
+
+	//盤面サイズ変更
+	void ChangeSize(unsigned int line, unsigned int column)
+	{
+		this->Release();
 
 		this->data_line = line;
 		this->data_column = column;
 		this->data_size = line * column;
 
-		// 最初に必ずやる処理なので，main関数から移動
-		this->GeneratePuyo();
+		//新しいサイズでメモリ確保
+		this->data = new puyocolor[this->data_size];
 	}
 
 	//盤面の行数を返す
@@ -378,7 +388,9 @@ int main(int argc, char **argv)
 	timeout(0);
 
 	//初期化処理
-	PuyoArray puyo(LINES / 2, COLS / 2); //フィールドは画面サイズの縦横1/2にする
+	PuyoArray puyo;
+	puyo.ChangeSize(LINES / 2, COLS / 2); //フィールドは画面サイズの縦横1/2にする
+	puyo.GeneratePuyo();
 
 	int delay = 0;
 	int waitCount = 20000;
