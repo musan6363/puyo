@@ -159,7 +159,7 @@ public:
 };
 
 //左移動
-void MoveLeft(PuyoArray puyo)
+void MoveLeft(PuyoArray &puyo)
 {
 	//一時的格納場所メモリ確保
 	puyocolor *puyo_temp = new puyocolor[puyo.GetSize()];
@@ -206,7 +206,7 @@ void MoveLeft(PuyoArray puyo)
 }
 
 //右移動
-void MoveRight(PuyoArray puyo)
+void MoveRight(PuyoArray &puyo)
 {
 	//一時的格納場所メモリ確保
 	puyocolor *puyo_temp = new puyocolor[puyo.GetSize()];
@@ -253,7 +253,7 @@ void MoveRight(PuyoArray puyo)
 }
 
 //下移動
-void MoveDown(PuyoArray puyo)
+void MoveDown(PuyoArray &puyo)
 {
 	//一時的格納場所メモリ確保
 	puyocolor *puyo_temp = new puyocolor[puyo.GetSize()];
@@ -299,7 +299,7 @@ void MoveDown(PuyoArray puyo)
 	delete[] puyo_temp;
 }
 
-void DisplayPuyo(PuyoArray puyo, int y, int x)
+void DisplayPuyo(PuyoArray &puyo, int y, int x)
 {
 	// 改善点: 毎回色の定義を行うのは非効率．
 	switch (puyo.GetValue(y, x))
@@ -336,7 +336,7 @@ void DisplayPuyo(PuyoArray puyo, int y, int x)
 }
 
 //表示
-void Display(PuyoArray puyo)
+void Display(PuyoArray &puyo)
 {
 	//落下中ぷよ表示
 	for (int y = 0; y < puyo.GetLine(); y++)
