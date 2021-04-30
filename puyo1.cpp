@@ -17,178 +17,177 @@ enum puyocolor
 
 class PuyoArray
 {
-	private:
-		//盤面状態
-		puyocolor *data;
-		unsigned int data_line;
-		unsigned int data_column;
-		unsigned int data_size;  // line*column
+private:
+	//盤面状態
+	puyocolor *data;
+	unsigned int data_line;
+	unsigned int data_column;
+	unsigned int data_size; // line*column
 
-		//メモリ開放
-		void Release()
+	//メモリ開放
+	void Release()
+	{
+		if (this->data == NULL)
 		{
-			if (this->data == NULL)
+			return;
+		}
+
+		delete[] this->data;
+		this->data = NULL;
+	}
+
+	// ランダムにぷよを選択
+	puyocolor RandomSelectPuyo() const
+	{
+		puyocolor newpuyo;
+		// puyocolorからランダムに選択する．
+		// YELLOWは末尾の要素でenumの長さを調べるために利用．
+		// NONE以外のぷよを返す．
+		do
+		{
+			newpuyo = static_cast<puyocolor>(rand() % (YELLOW + 1));
+		} while (newpuyo == NONE);
+
+		return newpuyo;
+	}
+
+public:
+	// コンストラクタ
+	PuyoArray(unsigned int line, unsigned int column)
+	{
+		// 元ChangeSize
+		//盤面サイズ変更
+		this->Release();
+
+		//新しいサイズでメモリ確保
+		this->data = new puyocolor[line * column];
+
+		this->data_line = line;
+		this->data_column = column;
+		this->data_size = line * column;
+
+		// 最初に必ずやる処理なので，main関数から移動
+		this->GeneratePuyo();
+	}
+
+	//盤面の行数を返す
+	unsigned int GetLine() const
+	{
+		return this->data_line;
+	}
+
+	//盤面の列数を返す
+	unsigned int GetColumn() const
+	{
+		return this->data_column;
+	}
+
+	unsigned int GetSize() const
+	{
+		return this->data_size;
+	}
+
+	//盤面の指定された位置の値を返す
+	puyocolor GetValue(unsigned int y, unsigned int x) const
+	{
+		if (y >= this->GetLine() || x >= this->GetColumn())
+		{
+			//引数の値が正しくない
+			return NONE;
+		}
+
+		return this->data[y * this->GetColumn() + x];
+	}
+
+	//盤面の指定された位置に値を書き込む
+	void SetValue(unsigned int y, unsigned int x, puyocolor value)
+	{
+		if (y >= this->GetLine() || x >= this->GetColumn())
+		{
+			//引数の値が正しくない
+			return;
+		}
+
+		data[y * this->GetColumn() + x] = value;
+	}
+
+	//盤面に新しいぷよ生成
+	void GeneratePuyo()
+	{
+		puyocolor newpuyo1;
+		newpuyo1 = this->RandomSelectPuyo();
+
+		puyocolor newpuyo2;
+		newpuyo2 = this->RandomSelectPuyo();
+
+		this->SetValue(0, 5, newpuyo1);
+		this->SetValue(0, 6, newpuyo2);
+	}
+
+	//ぷよの着地判定．着地判定があるとtrueを返す
+	// 着地時にぷよを消すので，constにできない．
+	bool LandingPuyo()
+	{
+		bool landed = false;
+
+		for (int y = 0; y < this->GetLine(); y++)
+		{
+			for (int x = 0; x < this->GetColumn(); x++)
 			{
-				return;
-			}
-
-			delete[] this->data;
-			this->data = NULL;
-		}
-
-		// ランダムにぷよを選択
-		puyocolor RandomSelectPuyo() const
-		{
-			puyocolor newpuyo;
-			// puyocolorからランダムに選択する．
-			// YELLOWは末尾の要素でenumの長さを調べるために利用．
-			// NONE以外のぷよを返す．
-			do
-			{
-				newpuyo = static_cast<puyocolor>(rand() % (YELLOW + 1));
-			} while (newpuyo == NONE);
-
-			return newpuyo;
-		}
-
-	public:
-		// コンストラクタ
-		PuyoArray(unsigned int line, unsigned int column){
-			// 元ChangeSize
-			//盤面サイズ変更
-			this->Release();
-
-			//新しいサイズでメモリ確保
-			this->data = new puyocolor[line * column];
-
-			this->data_line = line;
-			this->data_column = column;
-			this->data_size = line * column;
-
-			// 最初に必ずやる処理なので，main関数から移動
-			this->GeneratePuyo();
-		}
-
-		//盤面の行数を返す
-		unsigned int GetLine() const
-		{
-			return this->data_line;
-		}
-
-		//盤面の列数を返す
-		unsigned int GetColumn() const
-		{
-			return this->data_column;
-		}
-
-		unsigned int GetSize() const
-		{
-			return this->data_size;
-		}
-
-		//盤面の指定された位置の値を返す
-		puyocolor GetValue(unsigned int y, unsigned int x) const
-		{
-			if (y >= this->GetLine() || x >= this->GetColumn())
-			{
-				//引数の値が正しくない
-				return NONE;
-			}
-
-			return this->data[y * this->GetColumn() + x];
-		}
-
-		//盤面の指定された位置に値を書き込む
-		void SetValue(unsigned int y, unsigned int x, puyocolor value)
-		{
-			if (y >= this->GetLine() || x >= this->GetColumn())
-			{
-				//引数の値が正しくない
-				return;
-			}
-
-			data[y * this->GetColumn() + x] = value;
-		}
-
-		//盤面に新しいぷよ生成
-		void GeneratePuyo()
-		{
-			puyocolor newpuyo1;
-			newpuyo1 = this->RandomSelectPuyo();
-
-			puyocolor newpuyo2;
-			newpuyo2 = this->RandomSelectPuyo();
-
-			this->SetValue(0, 5, newpuyo1);
-			this->SetValue(0, 6, newpuyo2);
-		}
-
-		//ぷよの着地判定．着地判定があるとtrueを返す
-		// 着地時にぷよを消すので，constにできない．
-		bool LandingPuyo()
-		{
-			bool landed = false;
-
-			for (int y = 0; y < this->GetLine(); y++)
-			{
-				for (int x = 0; x < this->GetColumn(); x++)
+				if (this->GetValue(y, x) != NONE && y == this->GetLine() - 1)
 				{
-					if (this->GetValue(y, x) != NONE && y == this->GetLine() - 1)
-					{
-						landed = true;
+					landed = true;
 
-						//着地判定されたぷよを消す．本処理は必要に応じて変更する．
-						this->SetValue(y, x, NONE);
-					}
+					//着地判定されたぷよを消す．本処理は必要に応じて変更する．
+					this->SetValue(y, x, NONE);
 				}
 			}
-
-			return landed;
 		}
+
+		return landed;
+	}
 };
 
-
-
 //左移動
-void MoveLeft(PuyoArray *puyo)
+void MoveLeft(PuyoArray puyo)
 {
 	//一時的格納場所メモリ確保
-	puyocolor *puyo_temp = new puyocolor[puyo->GetSize()];
+	puyocolor *puyo_temp = new puyocolor[puyo.GetSize()];
 
-	for (int i = 0; i < puyo->GetSize(); i++)
+	for (int i = 0; i < puyo.GetSize(); i++)
 	{
 		puyo_temp[i] = NONE;
 	}
 
 	//1つ左の位置にpuyoactiveからpuyo_tempへとコピー
-	for (int y = 0; y < puyo->GetLine(); y++)
+	for (int y = 0; y < puyo.GetLine(); y++)
 	{
-		for (int x = 0; x < puyo->GetColumn(); x++)
+		for (int x = 0; x < puyo.GetColumn(); x++)
 		{
-			if (puyo->GetValue(y, x) == NONE)
+			if (puyo.GetValue(y, x) == NONE)
 			{
 				continue;
 			}
 
-			if (0 < x && puyo->GetValue(y, x - 1) == NONE)
+			if (0 < x && puyo.GetValue(y, x - 1) == NONE)
 			{
-				puyo_temp[y * puyo->GetColumn() + (x - 1)] = puyo->GetValue(y, x);
+				puyo_temp[y * puyo.GetColumn() + (x - 1)] = puyo.GetValue(y, x);
 				//コピー後に元位置のpuyoactiveのデータは消す
-				puyo->SetValue(y, x, NONE);
+				puyo.SetValue(y, x, NONE);
 			}
 			else
 			{
-				puyo_temp[y * puyo->GetColumn() + x] = puyo->GetValue(y, x);
+				puyo_temp[y * puyo.GetColumn() + x] = puyo.GetValue(y, x);
 			}
 		}
 	}
 
 	//puyo_tempからpuyoactiveへコピー
-	for (int y = 0; y < puyo->GetLine(); y++)
+	for (int y = 0; y < puyo.GetLine(); y++)
 	{
-		for (int x = 0; x < puyo->GetColumn(); x++)
+		for (int x = 0; x < puyo.GetColumn(); x++)
 		{
-			puyo->SetValue(y, x, puyo_temp[y * puyo->GetColumn() + x]);
+			puyo.SetValue(y, x, puyo_temp[y * puyo.GetColumn() + x]);
 		}
 	}
 
@@ -197,45 +196,45 @@ void MoveLeft(PuyoArray *puyo)
 }
 
 //右移動
-void MoveRight(PuyoArray *puyo)
+void MoveRight(PuyoArray puyo)
 {
 	//一時的格納場所メモリ確保
-	puyocolor *puyo_temp = new puyocolor[puyo->GetSize()];
+	puyocolor *puyo_temp = new puyocolor[puyo.GetSize()];
 
-	for (int i = 0; i < puyo->GetSize(); i++)
+	for (int i = 0; i < puyo.GetSize(); i++)
 	{
 		puyo_temp[i] = NONE;
 	}
 
 	//1つ右の位置にpuyoactiveからpuyo_tempへとコピー
-	for (int y = 0; y < puyo->GetLine(); y++)
+	for (int y = 0; y < puyo.GetLine(); y++)
 	{
-		for (int x = puyo->GetColumn() - 1; x >= 0; x--)
+		for (int x = puyo.GetColumn() - 1; x >= 0; x--)
 		{
-			if (puyo->GetValue(y, x) == NONE)
+			if (puyo.GetValue(y, x) == NONE)
 			{
 				continue;
 			}
 
-			if (x < puyo->GetColumn() - 1 && puyo->GetValue(y, x + 1) == NONE)
+			if (x < puyo.GetColumn() - 1 && puyo.GetValue(y, x + 1) == NONE)
 			{
-				puyo_temp[y * puyo->GetColumn() + (x + 1)] = puyo->GetValue(y, x);
+				puyo_temp[y * puyo.GetColumn() + (x + 1)] = puyo.GetValue(y, x);
 				//コピー後に元位置のpuyoactiveのデータは消す
-				puyo->SetValue(y, x, NONE);
+				puyo.SetValue(y, x, NONE);
 			}
 			else
 			{
-				puyo_temp[y * puyo->GetColumn() + x] = puyo->GetValue(y, x);
+				puyo_temp[y * puyo.GetColumn() + x] = puyo.GetValue(y, x);
 			}
 		}
 	}
 
 	//puyo_tempからpuyoactiveへコピー
-	for (int y = 0; y < puyo->GetLine(); y++)
+	for (int y = 0; y < puyo.GetLine(); y++)
 	{
-		for (int x = 0; x < puyo->GetColumn(); x++)
+		for (int x = 0; x < puyo.GetColumn(); x++)
 		{
-			puyo->SetValue(y, x, puyo_temp[y * puyo->GetColumn() + x]);
+			puyo.SetValue(y, x, puyo_temp[y * puyo.GetColumn() + x]);
 		}
 	}
 
@@ -244,45 +243,45 @@ void MoveRight(PuyoArray *puyo)
 }
 
 //下移動
-void MoveDown(PuyoArray *puyo)
+void MoveDown(PuyoArray puyo)
 {
 	//一時的格納場所メモリ確保
-	puyocolor *puyo_temp = new puyocolor[puyo->GetSize()];
+	puyocolor *puyo_temp = new puyocolor[puyo.GetSize()];
 
-	for (int i = 0; i < puyo->GetSize(); i++)
+	for (int i = 0; i < puyo.GetSize(); i++)
 	{
 		puyo_temp[i] = NONE;
 	}
 
 	//1つ下の位置にpuyoactiveからpuyo_tempへとコピー
-	for (int y = puyo->GetLine() - 1; y >= 0; y--)
+	for (int y = puyo.GetLine() - 1; y >= 0; y--)
 	{
-		for (int x = 0; x < puyo->GetColumn(); x++)
+		for (int x = 0; x < puyo.GetColumn(); x++)
 		{
-			if (puyo->GetValue(y, x) == NONE)
+			if (puyo.GetValue(y, x) == NONE)
 			{
 				continue;
 			}
 
-			if (y < puyo->GetLine() - 1 && puyo->GetValue(y + 1, x) == NONE)
+			if (y < puyo.GetLine() - 1 && puyo.GetValue(y + 1, x) == NONE)
 			{
-				puyo_temp[(y + 1) * puyo->GetColumn() + x] = puyo->GetValue(y, x);
+				puyo_temp[(y + 1) * puyo.GetColumn() + x] = puyo.GetValue(y, x);
 				//コピー後に元位置のpuyoactiveのデータは消す
-				puyo->SetValue(y, x, NONE);
+				puyo.SetValue(y, x, NONE);
 			}
 			else
 			{
-				puyo_temp[y * puyo->GetColumn() + x] = puyo->GetValue(y, x);
+				puyo_temp[y * puyo.GetColumn() + x] = puyo.GetValue(y, x);
 			}
 		}
 	}
 
 	//puyo_tempからpuyoactiveへコピー
-	for (int y = 0; y < puyo->GetLine(); y++)
+	for (int y = 0; y < puyo.GetLine(); y++)
 	{
-		for (int x = 0; x < puyo->GetColumn(); x++)
+		for (int x = 0; x < puyo.GetColumn(); x++)
 		{
-			puyo->SetValue(y, x, puyo_temp[y * puyo->GetColumn() + x]);
+			puyo.SetValue(y, x, puyo_temp[y * puyo.GetColumn() + x]);
 		}
 	}
 
@@ -290,10 +289,10 @@ void MoveDown(PuyoArray *puyo)
 	delete[] puyo_temp;
 }
 
-void DisplayPuyo(PuyoArray *puyo, int y, int x)
+void DisplayPuyo(PuyoArray puyo, int y, int x)
 {
 	// 改善点: 毎回色の定義を行うのは非効率．
-	switch (puyo->GetValue(y, x))
+	switch (puyo.GetValue(y, x))
 	{
 	case NONE:
 		init_pair(0, COLOR_WHITE, COLOR_BLACK);
@@ -327,12 +326,12 @@ void DisplayPuyo(PuyoArray *puyo, int y, int x)
 }
 
 //表示
-void Display(PuyoArray *puyo)
+void Display(PuyoArray puyo)
 {
 	//落下中ぷよ表示
-	for (int y = 0; y < puyo->GetLine(); y++)
+	for (int y = 0; y < puyo.GetLine(); y++)
 	{
-		for (int x = 0; x < puyo->GetColumn(); x++)
+		for (int x = 0; x < puyo.GetColumn(); x++)
 		{
 			DisplayPuyo(puyo, y, x);
 		}
@@ -340,11 +339,11 @@ void Display(PuyoArray *puyo)
 
 	//情報表示
 	int count = 0;
-	for (int y = 0; y < puyo->GetLine(); y++)
+	for (int y = 0; y < puyo.GetLine(); y++)
 	{
-		for (int x = 0; x < puyo->GetColumn(); x++)
+		for (int x = 0; x < puyo.GetColumn(); x++)
 		{
-			if (puyo->GetValue(y, x) != NONE)
+			if (puyo.GetValue(y, x) != NONE)
 			{
 				count++;
 			}
@@ -352,7 +351,7 @@ void Display(PuyoArray *puyo)
 	}
 
 	char msg[256];
-	sprintf(msg, "Field: %d x %d, Puyo number: %03d", puyo->GetLine(), puyo->GetColumn(), count);
+	sprintf(msg, "Field: %d x %d, Puyo number: %03d", puyo.GetLine(), puyo.GetColumn(), count);
 	mvaddstr(2, COLS - 35, msg);
 
 	refresh();
@@ -403,10 +402,10 @@ int main(int argc, char **argv)
 		switch (ch)
 		{
 		case KEY_LEFT:
-			MoveLeft(&puyo);
+			MoveLeft(puyo);
 			break;
 		case KEY_RIGHT:
-			MoveRight(&puyo);
+			MoveRight(puyo);
 			break;
 		case 'z':
 			//ぷよ回転処理
@@ -419,7 +418,7 @@ int main(int argc, char **argv)
 		if (delay % waitCount == 0)
 		{
 			//ぷよ下に移動
-			MoveDown(&puyo);
+			MoveDown(puyo);
 
 			//ぷよ着地判定
 			if (puyo.LandingPuyo())
@@ -431,7 +430,7 @@ int main(int argc, char **argv)
 		delay++;
 
 		//表示
-		Display(&puyo);
+		Display(puyo);
 	}
 
 	//画面をリセット
