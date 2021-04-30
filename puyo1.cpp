@@ -36,21 +36,6 @@ private:
 		this->data = NULL;
 	}
 
-	// ランダムにぷよを選択(GeneratePuyoから呼ばれる)
-	puyocolor RandomSelectPuyo() const
-	{
-		puyocolor newpuyo;
-		// puyocolorからランダムに選択する．
-		// YELLOWは末尾の要素でenumの長さを調べるために利用．
-		// NONE以外のぷよを返す．
-		do
-		{
-			newpuyo = static_cast<puyocolor>(rand() % (YELLOW + 1));
-		} while (newpuyo == NONE);
-
-		return newpuyo;
-	}
-
 public:
 	// コンストラクタ
 	PuyoArray()
@@ -92,8 +77,13 @@ public:
 		return this->data_column;
 	}
 
+	// 盤面のサイズ(行数x列数)を返す．追加実装．
 	unsigned int GetSize() const
 	{
+		// メンバ変数を増やさずに，
+		// return this->data_column * this->data_line;
+		// としても良い．
+		// その場合，コンストラクタ等での初期化も削除が必要．
 		return this->data_size;
 	}
 
@@ -120,43 +110,58 @@ public:
 
 		data[y * this->GetColumn() + x] = value;
 	}
+};
 
-	//盤面に新しいぷよ生成
-	void GeneratePuyo()
+// ランダムにぷよを選択(GeneratePuyoから呼ばれる)
+puyocolor RandomSelectPuyo()
+{
+	puyocolor newpuyo;
+	// puyocolorからランダムに選択する．
+	// YELLOWは末尾の要素でenumの長さを調べるために利用．
+	// NONE以外のぷよを返す．
+	do
 	{
-		puyocolor newpuyo1;
-		newpuyo1 = this->RandomSelectPuyo();
+		newpuyo = static_cast<puyocolor>(rand() % (YELLOW + 1));
+	} while (newpuyo == NONE);
 
-		puyocolor newpuyo2;
-		newpuyo2 = this->RandomSelectPuyo();
+	return newpuyo;
+}
 
-		this->SetValue(0, 5, newpuyo1);
-		this->SetValue(0, 6, newpuyo2);
-	}
+//盤面に新しいぷよ生成
+void GeneratePuyo(PuyoArray &puyo)
+{
+	puyocolor newpuyo1;
+	newpuyo1 = RandomSelectPuyo();
 
-	//ぷよの着地判定．着地判定があるとtrueを返す
-	// 着地時にぷよを消すので，constにできない．
-	bool LandingPuyo()
+	puyocolor newpuyo2;
+	newpuyo2 = RandomSelectPuyo();
+
+	puyo.SetValue(0, 5, newpuyo1);
+	puyo.SetValue(0, 6, newpuyo2);
+}
+
+//ぷよの着地判定．着地判定があるとtrueを返す
+// 着地時にぷよを消すので，constにできない．
+bool LandingPuyo(PuyoArray &puyo)
+{
+	bool landed = false;
+
+	for (int y = 0; y < puyo.GetLine(); y++)
 	{
-		bool landed = false;
-
-		for (int y = 0; y < this->GetLine(); y++)
+		for (int x = 0; x < puyo.GetColumn(); x++)
 		{
-			for (int x = 0; x < this->GetColumn(); x++)
+			if (puyo.GetValue(y, x) != NONE && y == puyo.GetLine() - 1)
 			{
-				if (this->GetValue(y, x) != NONE && y == this->GetLine() - 1)
-				{
-					landed = true;
+				landed = true;
 
-					//着地判定されたぷよを消す．本処理は必要に応じて変更する．
-					this->SetValue(y, x, NONE);
-				}
+				//着地判定されたぷよを消す．本処理は必要に応じて変更する．
+				puyo.SetValue(y, x, NONE);
 			}
 		}
-
-		return landed;
 	}
-};
+
+	return landed;
+}
 
 //左移動
 void MoveLeft(PuyoArray &puyo)
@@ -390,7 +395,7 @@ int main(int argc, char **argv)
 	//初期化処理
 	PuyoArray puyo;
 	puyo.ChangeSize(LINES / 2, COLS / 2); //フィールドは画面サイズの縦横1/2にする
-	puyo.GeneratePuyo();
+	GeneratePuyo(puyo);
 
 	int delay = 0;
 	int waitCount = 20000;
@@ -433,10 +438,10 @@ int main(int argc, char **argv)
 			MoveDown(puyo);
 
 			//ぷよ着地判定
-			if (puyo.LandingPuyo())
+			if (LandingPuyo(puyo))
 			{
 				//着地していたら新しいぷよ生成
-				puyo.GeneratePuyo();
+				GeneratePuyo(puyo);
 			}
 		}
 		delay++;
