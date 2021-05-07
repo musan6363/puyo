@@ -129,6 +129,9 @@ class PuyoArrayStack : public PuyoArray
 
 class PuyoControl
 {
+private:
+	bool landed; // 一度着地したら次のぷよが生成される(GeneratedPuyo呼び出し)まで着地判定を保持する．
+
 public:
 	// ランダムにぷよを選択(GeneratePuyoから呼ばれる)
 	puyocolor RandomSelectPuyo() const
@@ -148,6 +151,8 @@ public:
 	//盤面に新しいぷよ生成
 	void GeneratePuyo(PuyoArrayActive &active)
 	{
+		this->landed = false;
+
 		puyocolor newpuyo1;
 		newpuyo1 = this->RandomSelectPuyo();
 
@@ -162,8 +167,6 @@ public:
 	// 着地時にぷよを消すので，constにできない．
 	bool LandingPuyo(PuyoArrayActive &active, PuyoArrayStack &stack)
 	{
-		bool landed = false;
-
 		// if文をわかりやすくするために変数で管理
 		bool exist_puyo = false;
 		bool landing_on_gnd = false;
@@ -178,7 +181,7 @@ public:
 				landing_on_puyo = stack.GetValue(y + 1, x) != NONE;
 				if (exist_puyo && (landing_on_gnd || landing_on_puyo))
 				{
-					landed = true;
+					this->landed = true;
 
 					// activeのぷよのどちらかが着地すれば，activeの2つのぷよと同じ位置にstackを作る
 					// ぷよは必ず隣り合っているので探索範囲は狭い
@@ -201,10 +204,10 @@ public:
 		// リスポーン地点にstackぷよがあるときは新たに生成させない．
 		if (stack.GetValue(RESPAWN_Y, RESPAWN_X) != NONE)
 		{
-			landed = false;
+			this->landed = false;
 		}
 
-		return landed;
+		return this->landed;
 	}
 
 	//左移動
@@ -468,8 +471,6 @@ int main(int argc, char **argv)
 
 	int puyostate = 0;
 
-	bool landed = false;
-
 	//メイン処理ループ
 	while (1)
 	{
@@ -507,15 +508,12 @@ int main(int argc, char **argv)
 				//ぷよ下に移動
 				control.MoveDown(active, stack);
 			}
-			else
-			{
-				landed = true;
-			}
 
 			//ぷよ着地判定
-			if (landed || control.LandingPuyo(active, stack))
+			// 横から差し込んで着地した場合には，Downが実行されず，すでにactiveぷよがない．
+			// メンバ変数landedに着地情報が保持されているので，そちらが利用される．
+			if (control.LandingPuyo(active, stack))
 			{
-				landed = false;
 				//着地していたら新しいぷよ生成
 				control.GeneratePuyo(active);
 			}
