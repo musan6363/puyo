@@ -507,19 +507,23 @@ int main(int argc, char **argv)
 		}
 
 		//入力キーごとの処理
-		switch (ch)
+		if (!control.isLanded())
 		{
-		case KEY_LEFT:
-			control.MoveLeft(active, stack);
-			break;
-		case KEY_RIGHT:
-			control.MoveRight(active, stack);
-			break;
-		case 'z':
-			//ぷよ回転処理
-			break;
-		default:
-			break;
+
+			switch (ch)
+			{
+			case KEY_LEFT:
+				control.MoveLeft(active, stack);
+				break;
+			case KEY_RIGHT:
+				control.MoveRight(active, stack);
+				break;
+			case 'z':
+				//ぷよ回転処理
+				break;
+			default:
+				break;
+			}
 		}
 
 		//処理速度調整のためのif文
@@ -529,10 +533,9 @@ int main(int argc, char **argv)
 			{
 				//ぷよ下に移動
 				control.MoveDown(active, stack);
+				//ぷよ着地判定
+				control.LandingPuyo(active, stack);
 			}
-
-			//ぷよ着地判定
-			control.LandingPuyo(active, stack);
 
 			// 左右移動によるぷよの差し込みでも着地することがある．
 			if (control.isLanded())
