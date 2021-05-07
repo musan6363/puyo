@@ -525,8 +525,11 @@ int main(int argc, char **argv)
 		//処理速度調整のためのif文
 		if (delay % waitCount == 0)
 		{
-			//ぷよ下に移動
-			control.MoveDown(active, stack);
+			if (!control.isLanded())
+			{
+				//ぷよ下に移動
+				control.MoveDown(active, stack);
+			}
 
 			//ぷよ着地判定
 			control.LandingPuyo(active, stack);
