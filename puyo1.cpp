@@ -129,29 +129,6 @@ class PuyoArrayStack : public PuyoArray
 
 class PuyoControl
 {
-private:
-	bool landed;
-
-	// ぷよが着地したときにactiveぷよをstackぷよにコピーして消す．
-	void StackedPuyo(PuyoArrayActive &active, PuyoArrayStack &stack, int x, int y)
-	{
-		// activeのぷよのどちらかが着地すれば，activeの2つのぷよと同じ位置にstackを作る
-		// ぷよは必ず隣り合っているので探索範囲は狭い
-		for (int j = y - 1; j < y + 2; j++)
-		{
-			for (int i = x - 1; i < x + 2; i++)
-			{
-				// すでにあるstackを上書きしないようにする
-				if (active.GetValue(j, i) != NONE)
-				{
-					stack.SetValue(j, i, active.GetValue(j, i));
-					active.SetValue(j, i, NONE);
-				}
-			}
-		}
-		this->landed = true;
-	}
-
 public:
 	// ランダムにぷよを選択(GeneratePuyoから呼ばれる)
 	puyocolor RandomSelectPuyo() const
@@ -171,8 +148,6 @@ public:
 	//盤面に新しいぷよ生成
 	void GeneratePuyo(PuyoArrayActive &active)
 	{
-		this->landed = false;
-
 		puyocolor newpuyo1;
 		newpuyo1 = this->RandomSelectPuyo();
 
@@ -181,11 +156,6 @@ public:
 
 		active.SetValue(RESPAWN_Y, RESPAWN_X, newpuyo1);
 		active.SetValue(RESPAWN_Y, RESPAWN_X + 1, newpuyo2);
-	}
-
-	bool isLanded()
-	{
-		return this->landed;
 	}
 
 	//ぷよの着地判定．着地判定があるとtrueを返す
@@ -209,7 +179,21 @@ public:
 				if (exist_puyo && (landing_on_gnd || landing_on_puyo))
 				{
 					landed = true;
-					this->StackedPuyo(active, stack, x, y);
+
+					// activeのぷよのどちらかが着地すれば，activeの2つのぷよと同じ位置にstackを作る
+					// ぷよは必ず隣り合っているので探索範囲は狭い
+					for (int j = y - 1; j < y + 2; j++)
+					{
+						for (int i = x - 1; i < x + 2; i++)
+						{
+							// すでにあるstackを上書きしないようにする
+							if (active.GetValue(j, i) != NONE)
+							{
+								stack.SetValue(j, i, active.GetValue(j, i));
+								active.SetValue(j, i, NONE);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -217,7 +201,7 @@ public:
 		// リスポーン地点にstackぷよがあるときは新たに生成させない．
 		if (stack.GetValue(RESPAWN_Y, RESPAWN_X) != NONE)
 		{
-			return false;
+			landed = false;
 		}
 
 		return landed;
@@ -226,7 +210,6 @@ public:
 	//左移動
 	void MoveLeft(PuyoArrayActive &active, PuyoArrayStack &stack)
 	{
-
 		//一時的格納場所メモリ確保
 		puyocolor *puyo_temp = new puyocolor[active.GetSize()];
 
@@ -268,10 +251,6 @@ public:
 			for (int x = 0; x < active.GetColumn(); x++)
 			{
 				active.SetValue(y, x, puyo_temp[y * active.GetColumn() + x]);
-				if (active.GetValue(y, x) != NONE && stack.GetValue(y + 1, x) != NONE)
-				{
-					this->StackedPuyo(active, stack, x, y);
-				}
 			}
 		}
 
@@ -319,10 +298,6 @@ public:
 			for (int x = 0; x < active.GetColumn(); x++)
 			{
 				active.SetValue(y, x, puyo_temp[y * active.GetColumn() + x]);
-				if (active.GetValue(y, x) != NONE && stack.GetValue(y + 1, x) != NONE)
-				{
-					this->StackedPuyo(active, stack, x, y);
-				}
 			}
 		}
 
@@ -493,6 +468,8 @@ int main(int argc, char **argv)
 
 	int puyostate = 0;
 
+	bool landed = false;
+
 	//メイン処理ループ
 	while (1)
 	{
@@ -507,39 +484,38 @@ int main(int argc, char **argv)
 		}
 
 		//入力キーごとの処理
-		if (!control.isLanded())
+		switch (ch)
 		{
-
-			switch (ch)
-			{
-			case KEY_LEFT:
-				control.MoveLeft(active, stack);
-				break;
-			case KEY_RIGHT:
-				control.MoveRight(active, stack);
-				break;
-			case 'z':
-				//ぷよ回転処理
-				break;
-			default:
-				break;
-			}
+		case KEY_LEFT:
+			control.MoveLeft(active, stack);
+			break;
+		case KEY_RIGHT:
+			control.MoveRight(active, stack);
+			break;
+		case 'z':
+			//ぷよ回転処理
+			break;
+		default:
+			break;
 		}
 
 		//処理速度調整のためのif文
 		if (delay % waitCount == 0)
 		{
-			if (!control.isLanded())
+			if (!control.LandingPuyo(active, stack))
 			{
 				//ぷよ下に移動
 				control.MoveDown(active, stack);
-				//ぷよ着地判定
-				control.LandingPuyo(active, stack);
+			}
+			else
+			{
+				landed = true;
 			}
 
-			// 左右移動によるぷよの差し込みでも着地することがある．
-			if (control.isLanded())
+			//ぷよ着地判定
+			if (landed || control.LandingPuyo(active, stack))
 			{
+				landed = false;
 				//着地していたら新しいぷよ生成
 				control.GeneratePuyo(active);
 			}
