@@ -482,6 +482,7 @@ int main(int argc, char **argv)
 		}
 
 		//入力キーごとの処理
+		// 要改善：ぷよを横から差し込んだときに片方だけ降下を続けてしまう．
 		switch (ch)
 		{
 		case KEY_LEFT:
