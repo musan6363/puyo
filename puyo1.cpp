@@ -356,11 +356,11 @@ public:
 	}
 };
 
-void DisplayPuyo(PuyoArrayActive &active, int y, int x)
+void DisplayPuyo(PuyoArray &puyo, int y, int x)
 {
 	// PuyoArrayActiveもPuyoArrayStackもPuyoArrayにキャストして表示する
 	// 改善点: 毎回色の定義を行うのは非効率．
-	switch (active.GetValue(y, x))
+	switch (puyo.GetValue(y, x))
 	{
 	case NONE:
 		init_pair(0, COLOR_WHITE, COLOR_BLACK);
