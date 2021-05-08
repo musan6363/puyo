@@ -202,7 +202,7 @@ public:
 		}
 
 		// リスポーン地点にstackぷよがあるときは新たに生成させない．
-		if (stack.GetValue(RESPAWN_Y, RESPAWN_X) != NONE)
+		if (stack.GetValue(RESPAWN_Y, RESPAWN_X) != NONE || stack.GetValue(RESPAWN_Y, RESPAWN_X + 1) != NONE)
 		{
 			this->landed = false;
 		}
