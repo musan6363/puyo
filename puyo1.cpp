@@ -354,6 +354,149 @@ public:
 		//一時的格納場所メモリ解放
 		delete[] puyo_temp;
 	}
+
+	/*
+	NUCTのpuyo4_vanish.cppを引用
+	*/
+	//ぷよ消滅処理を全座標で行う
+	//消滅したぷよの数を返す
+	int VanishPuyo(PuyoArrayStack &puyostack)
+	{
+		int vanishednumber = 0;
+		for (int y = 0; y < puyostack.GetLine(); y++)
+		{
+			for (int x = 0; x < puyostack.GetColumn(); x++)
+			{
+				vanishednumber += VanishPuyo(puyostack, y, x);
+			}
+		}
+
+		return vanishednumber;
+	}
+
+	//ぷよ消滅処理を座標(x,y)で行う
+	//消滅したぷよの数を返す
+	int VanishPuyo(PuyoArrayStack &puyostack, unsigned int y, unsigned int x)
+	{
+		//判定個所にぷよがなければ処理終了
+		if (puyostack.GetValue(y, x) == NONE)
+		{
+			return 0;
+		}
+
+
+		//判定状態を表す列挙型
+		//NOCHECK判定未実施，CHECKINGが判定対象，CHECKEDが判定済み
+		enum checkstate{ NOCHECK, CHECKING, CHECKED };
+
+		//判定結果格納用の配列
+		enum checkstate *field_array_check;
+		field_array_check = new enum checkstate[puyostack.GetLine()*puyostack.GetColumn()];
+
+		//配列初期化
+		for (int i = 0; i < puyostack.GetLine()*puyostack.GetColumn(); i++)
+		{
+			field_array_check[i] = NOCHECK;
+		}
+
+		//座標(x,y)を判定対象にする
+		field_array_check[y*puyostack.GetColumn() + x] = CHECKING;
+
+		//判定対象が1つもなくなるまで，判定対象の上下左右に同じ色のぷよがあるか確認し，あれば新たな判定対象にする
+		bool checkagain = true;
+		while (checkagain)
+		{
+			checkagain = false;
+
+			for (int y = 0; y < puyostack.GetLine(); y++)
+			{
+				for (int x = 0; x < puyostack.GetColumn(); x++)
+				{
+					//(x,y)に判定対象がある場合
+					if (field_array_check[y*puyostack.GetColumn() + x] == CHECKING)
+					{
+						//(x+1,y)の判定
+						if (x < puyostack.GetColumn() - 1)
+						{
+							//(x+1,y)と(x,y)のぷよの色が同じで，(x+1,y)のぷよが判定未実施か確認
+							if (puyostack.GetValue(y, x + 1) == puyostack.GetValue(y, x) && field_array_check[y*puyostack.GetColumn() + (x + 1)] == NOCHECK)
+							{
+								//(x+1,y)を判定対象にする
+								field_array_check[y*puyostack.GetColumn() + (x + 1)] = CHECKING;
+								checkagain = true;
+							}
+						}
+
+						//(x-1,y)の判定
+						if (x > 0)
+						{
+							if (puyostack.GetValue(y, x - 1) == puyostack.GetValue(y, x) && field_array_check[y*puyostack.GetColumn() + (x - 1)] == NOCHECK)
+							{
+								field_array_check[y*puyostack.GetColumn() + (x - 1)] = CHECKING;
+								checkagain = true;
+							}
+						}
+
+						//(x,y+1)の判定
+						if (y < puyostack.GetLine() - 1)
+						{
+							if (puyostack.GetValue(y + 1, x) == puyostack.GetValue(y, x) && field_array_check[(y + 1)*puyostack.GetColumn() + x] == NOCHECK)
+							{
+								field_array_check[(y + 1)*puyostack.GetColumn() + x] = CHECKING;
+								checkagain = true;
+							}
+						}
+
+						//(x,y-1)の判定
+						if (y > 0)
+						{
+							if (puyostack.GetValue(y - 1, x) == puyostack.GetValue(y, x) && field_array_check[(y - 1)*puyostack.GetColumn() + x] == NOCHECK)
+							{
+								field_array_check[(y - 1)*puyostack.GetColumn() + x] = CHECKING;
+								checkagain = true;
+							}
+						}
+
+						//(x,y)を判定済みにする
+						field_array_check[y*puyostack.GetColumn() + x] = CHECKED;
+					}
+				}
+			}
+		}
+
+		//判定済みの数をカウント
+		int puyocount = 0;
+		for (int i = 0; i < puyostack.GetLine()*puyostack.GetColumn(); i++)
+		{
+			if (field_array_check[i] == CHECKED)
+			{
+				puyocount++;
+			}
+		}
+
+		//4個以上あれば，判定済み座標のぷよを消す
+		int vanishednumber = 0;
+		if (4 <= puyocount)
+		{
+			for (int y = 0; y < puyostack.GetLine(); y++)
+			{
+				for (int x = 0; x < puyostack.GetColumn(); x++)
+				{
+					if (field_array_check[y*puyostack.GetColumn() + x] == CHECKED)
+					{
+						puyostack.SetValue(y, x, NONE);
+
+						vanishednumber++;
+					}
+				}
+			}
+		}
+
+		//メモリ解放
+		delete[] field_array_check;
+
+		return vanishednumber;
+	}
 };
 
 void DisplayPuyo(PuyoArray &puyo, int y, int x)
@@ -515,6 +658,9 @@ int main(int argc, char **argv)
 			// メンバ変数landedに着地情報が保持されているので，そちらが利用される．
 			if (control.LandingPuyo(active, stack))
 			{
+				// 4つ以上つながったぷよを削除
+				control.VanishPuyo(stack);
+
 				//着地していたら新しいぷよ生成
 				control.GeneratePuyo(active);
 			}
