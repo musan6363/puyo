@@ -120,12 +120,24 @@ public:
 //「落下中」ぷよを管理するクラス．PuyoArrayクラスをpublicで継承
 class PuyoArrayActive : public PuyoArray
 {
+private:
+	int puyorotate;
+
 public:
-	int puyorotate; // privateが望ましい
 	// コンストラクタ
 	PuyoArrayActive()
 	{
 		this->puyorotate = 0;
+	}
+
+	void set_rotate(int new_rotate)
+	{
+		this->puyorotate = new_rotate;
+	}
+
+	int get_rotate()
+	{
+		return this->puyorotate;
 	}
 };
 
@@ -168,7 +180,7 @@ public:
 
 		active.SetValue(RESPAWN_Y, RESPAWN_X, newpuyo1);
 		active.SetValue(RESPAWN_Y, RESPAWN_X + 1, newpuyo2);
-		active.puyorotate = 0; // puyoの回転状態の初期値
+		active.set_rotate(0); // puyoの回転状態の初期値
 	}
 
 	//ぷよの着地判定．着地判定があるとtrueを返す
@@ -551,7 +563,7 @@ public:
 		puyoactive.SetValue(puyo2_y, puyo2_x, NONE);
 
 		//操作中ぷよの回転
-		switch (puyoactive.puyorotate)
+		switch (puyoactive.get_rotate())
 		{
 		case 0:
 			//回転パターン
@@ -569,7 +581,7 @@ public:
 			puyoactive.SetValue(puyo1_y, puyo1_x, puyo1);
 			puyoactive.SetValue(puyo2_y + 1, puyo2_x - 1, puyo2);
 			//次の回転パターンの設定
-			puyoactive.puyorotate = 1;
+			puyoactive.set_rotate(1);
 			break;
 
 		case 1:
@@ -589,7 +601,7 @@ public:
 			puyoactive.SetValue(puyo2_y - 1, puyo2_x - 1, puyo2);
 
 			//次の回転パターンの設定
-			puyoactive.puyorotate = 2;
+			puyoactive.set_rotate(2);
 			break;
 
 		case 2:
@@ -609,7 +621,7 @@ public:
 			puyoactive.SetValue(puyo2_y, puyo2_x, puyo2);
 
 			//次の回転パターンの設定
-			puyoactive.puyorotate = 3;
+			puyoactive.set_rotate(3);
 			break;
 
 		case 3:
@@ -629,7 +641,7 @@ public:
 			puyoactive.SetValue(puyo2_y, puyo2_x, puyo2);
 
 			//次の回転パターンの設定
-			puyoactive.puyorotate = 0;
+			puyoactive.set_rotate(0);
 			break;
 
 		default:
