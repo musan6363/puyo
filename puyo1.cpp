@@ -120,6 +120,25 @@ public:
 //「落下中」ぷよを管理するクラス．PuyoArrayクラスをpublicで継承
 class PuyoArrayActive : public PuyoArray
 {
+private:
+	int puyorotate;
+
+public:
+	// コンストラクタ
+	PuyoArrayActive()
+	{
+		this->puyorotate = 0;
+	}
+
+	void set_rotate(int new_rotate)
+	{
+		this->puyorotate = new_rotate;
+	}
+
+	int get_rotate()
+	{
+		return this->puyorotate;
+	}
 };
 
 //「着地済み」ぷよを管理するクラス．PuyoArrayクラスをpublicで継承
@@ -161,6 +180,7 @@ public:
 
 		active.SetValue(RESPAWN_Y, RESPAWN_X, newpuyo1);
 		active.SetValue(RESPAWN_Y, RESPAWN_X + 1, newpuyo2);
+		active.set_rotate(0); // puyoの回転状態の初期値
 	}
 
 	//ぷよの着地判定．着地判定があるとtrueを返す
@@ -384,23 +404,27 @@ public:
 			return 0;
 		}
 
-
 		//判定状態を表す列挙型
 		//NOCHECK判定未実施，CHECKINGが判定対象，CHECKEDが判定済み
-		enum checkstate{ NOCHECK, CHECKING, CHECKED };
+		enum checkstate
+		{
+			NOCHECK,
+			CHECKING,
+			CHECKED
+		};
 
 		//判定結果格納用の配列
 		enum checkstate *field_array_check;
-		field_array_check = new enum checkstate[puyostack.GetLine()*puyostack.GetColumn()];
+		field_array_check = new enum checkstate[puyostack.GetLine() * puyostack.GetColumn()];
 
 		//配列初期化
-		for (int i = 0; i < puyostack.GetLine()*puyostack.GetColumn(); i++)
+		for (int i = 0; i < puyostack.GetLine() * puyostack.GetColumn(); i++)
 		{
 			field_array_check[i] = NOCHECK;
 		}
 
 		//座標(x,y)を判定対象にする
-		field_array_check[y*puyostack.GetColumn() + x] = CHECKING;
+		field_array_check[y * puyostack.GetColumn() + x] = CHECKING;
 
 		//判定対象が1つもなくなるまで，判定対象の上下左右に同じ色のぷよがあるか確認し，あれば新たな判定対象にする
 		bool checkagain = true;
@@ -413,16 +437,16 @@ public:
 				for (int x = 0; x < puyostack.GetColumn(); x++)
 				{
 					//(x,y)に判定対象がある場合
-					if (field_array_check[y*puyostack.GetColumn() + x] == CHECKING)
+					if (field_array_check[y * puyostack.GetColumn() + x] == CHECKING)
 					{
 						//(x+1,y)の判定
 						if (x < puyostack.GetColumn() - 1)
 						{
 							//(x+1,y)と(x,y)のぷよの色が同じで，(x+1,y)のぷよが判定未実施か確認
-							if (puyostack.GetValue(y, x + 1) == puyostack.GetValue(y, x) && field_array_check[y*puyostack.GetColumn() + (x + 1)] == NOCHECK)
+							if (puyostack.GetValue(y, x + 1) == puyostack.GetValue(y, x) && field_array_check[y * puyostack.GetColumn() + (x + 1)] == NOCHECK)
 							{
 								//(x+1,y)を判定対象にする
-								field_array_check[y*puyostack.GetColumn() + (x + 1)] = CHECKING;
+								field_array_check[y * puyostack.GetColumn() + (x + 1)] = CHECKING;
 								checkagain = true;
 							}
 						}
@@ -430,9 +454,9 @@ public:
 						//(x-1,y)の判定
 						if (x > 0)
 						{
-							if (puyostack.GetValue(y, x - 1) == puyostack.GetValue(y, x) && field_array_check[y*puyostack.GetColumn() + (x - 1)] == NOCHECK)
+							if (puyostack.GetValue(y, x - 1) == puyostack.GetValue(y, x) && field_array_check[y * puyostack.GetColumn() + (x - 1)] == NOCHECK)
 							{
-								field_array_check[y*puyostack.GetColumn() + (x - 1)] = CHECKING;
+								field_array_check[y * puyostack.GetColumn() + (x - 1)] = CHECKING;
 								checkagain = true;
 							}
 						}
@@ -440,9 +464,9 @@ public:
 						//(x,y+1)の判定
 						if (y < puyostack.GetLine() - 1)
 						{
-							if (puyostack.GetValue(y + 1, x) == puyostack.GetValue(y, x) && field_array_check[(y + 1)*puyostack.GetColumn() + x] == NOCHECK)
+							if (puyostack.GetValue(y + 1, x) == puyostack.GetValue(y, x) && field_array_check[(y + 1) * puyostack.GetColumn() + x] == NOCHECK)
 							{
-								field_array_check[(y + 1)*puyostack.GetColumn() + x] = CHECKING;
+								field_array_check[(y + 1) * puyostack.GetColumn() + x] = CHECKING;
 								checkagain = true;
 							}
 						}
@@ -450,15 +474,15 @@ public:
 						//(x,y-1)の判定
 						if (y > 0)
 						{
-							if (puyostack.GetValue(y - 1, x) == puyostack.GetValue(y, x) && field_array_check[(y - 1)*puyostack.GetColumn() + x] == NOCHECK)
+							if (puyostack.GetValue(y - 1, x) == puyostack.GetValue(y, x) && field_array_check[(y - 1) * puyostack.GetColumn() + x] == NOCHECK)
 							{
-								field_array_check[(y - 1)*puyostack.GetColumn() + x] = CHECKING;
+								field_array_check[(y - 1) * puyostack.GetColumn() + x] = CHECKING;
 								checkagain = true;
 							}
 						}
 
 						//(x,y)を判定済みにする
-						field_array_check[y*puyostack.GetColumn() + x] = CHECKED;
+						field_array_check[y * puyostack.GetColumn() + x] = CHECKED;
 					}
 				}
 			}
@@ -466,7 +490,7 @@ public:
 
 		//判定済みの数をカウント
 		int puyocount = 0;
-		for (int i = 0; i < puyostack.GetLine()*puyostack.GetColumn(); i++)
+		for (int i = 0; i < puyostack.GetLine() * puyostack.GetColumn(); i++)
 		{
 			if (field_array_check[i] == CHECKED)
 			{
@@ -482,7 +506,7 @@ public:
 			{
 				for (int x = 0; x < puyostack.GetColumn(); x++)
 				{
-					if (field_array_check[y*puyostack.GetColumn() + x] == CHECKED)
+					if (field_array_check[y * puyostack.GetColumn() + x] == CHECKED)
 					{
 						puyostack.SetValue(y, x, NONE);
 
@@ -496,6 +520,157 @@ public:
 		delete[] field_array_check;
 
 		return vanishednumber;
+	}
+
+	//回転
+	//PuyoArrayActiveクラスのprivateメンバ変数として int puyorotate を宣言し，これに回転状態を記憶させている．
+	//puyorotateにはコンストラクタ及びGeneratePuyo関数で値0を代入する必要あり．
+	void Rotate(PuyoArrayActive &puyoactive)
+	{
+		//フィールドをラスタ順に探索（最も上の行を左から右方向へチェックして，次に一つ下の行を左から右方向へチェックして，次にその下の行・・と繰り返す）し，先に発見される方をpuyo1, 次に発見される方をpuyo2に格納
+		puyocolor puyo1, puyo2;
+		int puyo1_x = 0;
+		int puyo1_y = 0;
+		int puyo2_x = 0;
+		int puyo2_y = 0;
+
+		bool findingpuyo1 = true;
+		for (int y = 0; y < puyoactive.GetLine(); y++)
+		{
+			for (int x = 0; x < puyoactive.GetColumn(); x++)
+			{
+				if (puyoactive.GetValue(y, x) != NONE)
+				{
+					if (findingpuyo1)
+					{
+						puyo1 = puyoactive.GetValue(y, x);
+						puyo1_x = x;
+						puyo1_y = y;
+						findingpuyo1 = false;
+					}
+					else
+					{
+						puyo2 = puyoactive.GetValue(y, x);
+						puyo2_x = x;
+						puyo2_y = y;
+					}
+				}
+			}
+		}
+
+		//回転前のぷよを消す
+		puyoactive.SetValue(puyo1_y, puyo1_x, NONE);
+		puyoactive.SetValue(puyo2_y, puyo2_x, NONE);
+
+		//操作中ぷよの回転
+		switch (puyoactive.get_rotate())
+		{
+		case 0:
+			//回転パターン
+			//RB -> R
+			//      B
+			//Rがpuyo1, Bがpuyo2
+			if (puyo2_x <= 0 || puyo2_y >= puyoactive.GetLine() - 1) //もし回転した結果field_arrayの範囲外に出るなら回転しない
+			{
+				puyoactive.SetValue(puyo1_y, puyo1_x, puyo1);
+				puyoactive.SetValue(puyo2_y, puyo2_x, puyo2);
+				break;
+			}
+
+			//回転後の位置にぷよを置く
+			puyoactive.SetValue(puyo1_y, puyo1_x, puyo1);
+			puyoactive.SetValue(puyo2_y + 1, puyo2_x - 1, puyo2);
+			//次の回転パターンの設定
+			puyoactive.set_rotate(1);
+			break;
+
+		case 1:
+			//回転パターン
+			//R -> BR
+			//B
+			//Rがpuyo1, Bがpuyo2
+			if (puyo2_x <= 0 || puyo2_y <= 0) //もし回転した結果field_arrayの範囲外に出るなら回転しない
+			{
+				puyoactive.SetValue(puyo1_y, puyo1_x, puyo1);
+				puyoactive.SetValue(puyo2_y, puyo2_x, puyo2);
+				break;
+			}
+
+			//回転後の位置にぷよを置く
+			puyoactive.SetValue(puyo1_y, puyo1_x, puyo1);
+			puyoactive.SetValue(puyo2_y - 1, puyo2_x - 1, puyo2);
+
+			//次の回転パターンの設定
+			puyoactive.set_rotate(2);
+			break;
+
+		case 2:
+			//回転パターン
+			//      B
+			//BR -> R
+			//Bがpuyo1, Rがpuyo2
+			if (puyo1_x >= puyoactive.GetColumn() - 1 || puyo1_y <= 0) //もし回転した結果field_arrayの範囲外に出るなら回転しない
+			{
+				puyoactive.SetValue(puyo1_y, puyo1_x, puyo1);
+				puyoactive.SetValue(puyo2_y, puyo2_x, puyo2);
+				break;
+			}
+
+			//回転後の位置にぷよを置く
+			puyoactive.SetValue(puyo1_y - 1, puyo1_x + 1, puyo1);
+			puyoactive.SetValue(puyo2_y, puyo2_x, puyo2);
+
+			//次の回転パターンの設定
+			puyoactive.set_rotate(3);
+			break;
+
+		case 3:
+			//回転パターン
+			//B
+			//R -> RB
+			//Bがpuyo1, Rがpuyo2
+			if (puyo1_x >= puyoactive.GetColumn() - 1 || puyo1_y >= puyoactive.GetLine() - 1) //もし回転した結果field_arrayの範囲外に出るなら回転しない
+			{
+				puyoactive.SetValue(puyo1_y, puyo1_x, puyo1);
+				puyoactive.SetValue(puyo2_y, puyo2_x, puyo2);
+				break;
+			}
+
+			//回転後の位置にぷよを置く
+			puyoactive.SetValue(puyo1_y + 1, puyo1_x + 1, puyo1);
+			puyoactive.SetValue(puyo2_y, puyo2_x, puyo2);
+
+			//次の回転パターンの設定
+			puyoactive.set_rotate(0);
+			break;
+
+		default:
+			break;
+		}
+	}
+
+	// 宙に浮いたぷよを落下させる
+	bool DropFloatingPuyo(PuyoArrayStack &stack)
+	{
+		bool lock = true;
+		for (int x = 0; x < stack.GetColumn(); x++)
+		{
+			for (int y = 0; y < stack.GetLine() - 1; y++)
+			{
+				if ((stack.GetValue(y, x) != NONE) && stack.GetValue(y + 1, x) == NONE)
+				{
+					// 存在する(NONEでない)ぷよの下が空いている(NONE)
+					lock = true;
+					stack.SetValue(y + 1, x, stack.GetValue(y, x));
+					stack.SetValue(y, x, NONE);
+				}
+				else
+				{
+					lock = false;
+				}
+			}
+		}
+		return lock;
 	}
 };
 
@@ -639,6 +814,7 @@ int main(int argc, char **argv)
 			break;
 		case 'z':
 			//ぷよ回転処理
+			control.Rotate(active);
 			break;
 		default:
 			break;
@@ -665,8 +841,10 @@ int main(int argc, char **argv)
 				control.GeneratePuyo(active);
 			}
 		}
-		delay++;
-
+		if (!control.DropFloatingPuyo(stack))
+		{
+			delay++;
+		}
 		//表示
 		Display(active, stack);
 	}

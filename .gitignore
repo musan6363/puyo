@@ -1,3 +1,5 @@
 puyo1
 .DS_Store
 puyo4_vanish.cpp
+puyo6_rotate.cpp
+.vscode
