@@ -648,6 +648,30 @@ public:
 			break;
 		}
 	}
+
+	// 宙に浮いたぷよを落下させる
+	bool DropFloatingPuyo(PuyoArrayStack &stack)
+	{
+		bool lock = true;
+		for (int x = 0; x < stack.GetColumn(); x++)
+		{
+			for (int y = 0; y < stack.GetLine() - 1; y++)
+			{
+				if ((stack.GetValue(y, x) != NONE) && stack.GetValue(y + 1, x) == NONE)
+				{
+					// 存在する(NONEでない)ぷよの下が空いている(NONE)
+					lock = true;
+					stack.SetValue(y + 1, x, stack.GetValue(y, x));
+					stack.SetValue(y, x, NONE);
+				}
+				else
+				{
+					lock = false;
+				}
+			}
+		}
+		return lock;
+	}
 };
 
 void DisplayPuyo(PuyoArray &puyo, int y, int x)
@@ -817,8 +841,10 @@ int main(int argc, char **argv)
 				control.GeneratePuyo(active);
 			}
 		}
-		delay++;
-
+		if (!control.DropFloatingPuyo(stack))
+		{
+			delay++;
+		}
 		//表示
 		Display(active, stack);
 	}
