@@ -384,23 +384,27 @@ public:
 			return 0;
 		}
 
-
 		//判定状態を表す列挙型
 		//NOCHECK判定未実施，CHECKINGが判定対象，CHECKEDが判定済み
-		enum checkstate{ NOCHECK, CHECKING, CHECKED };
+		enum checkstate
+		{
+			NOCHECK,
+			CHECKING,
+			CHECKED
+		};
 
 		//判定結果格納用の配列
 		enum checkstate *field_array_check;
-		field_array_check = new enum checkstate[puyostack.GetLine()*puyostack.GetColumn()];
+		field_array_check = new enum checkstate[puyostack.GetLine() * puyostack.GetColumn()];
 
 		//配列初期化
-		for (int i = 0; i < puyostack.GetLine()*puyostack.GetColumn(); i++)
+		for (int i = 0; i < puyostack.GetLine() * puyostack.GetColumn(); i++)
 		{
 			field_array_check[i] = NOCHECK;
 		}
 
 		//座標(x,y)を判定対象にする
-		field_array_check[y*puyostack.GetColumn() + x] = CHECKING;
+		field_array_check[y * puyostack.GetColumn() + x] = CHECKING;
 
 		//判定対象が1つもなくなるまで，判定対象の上下左右に同じ色のぷよがあるか確認し，あれば新たな判定対象にする
 		bool checkagain = true;
@@ -413,16 +417,16 @@ public:
 				for (int x = 0; x < puyostack.GetColumn(); x++)
 				{
 					//(x,y)に判定対象がある場合
-					if (field_array_check[y*puyostack.GetColumn() + x] == CHECKING)
+					if (field_array_check[y * puyostack.GetColumn() + x] == CHECKING)
 					{
 						//(x+1,y)の判定
 						if (x < puyostack.GetColumn() - 1)
 						{
 							//(x+1,y)と(x,y)のぷよの色が同じで，(x+1,y)のぷよが判定未実施か確認
-							if (puyostack.GetValue(y, x + 1) == puyostack.GetValue(y, x) && field_array_check[y*puyostack.GetColumn() + (x + 1)] == NOCHECK)
+							if (puyostack.GetValue(y, x + 1) == puyostack.GetValue(y, x) && field_array_check[y * puyostack.GetColumn() + (x + 1)] == NOCHECK)
 							{
 								//(x+1,y)を判定対象にする
-								field_array_check[y*puyostack.GetColumn() + (x + 1)] = CHECKING;
+								field_array_check[y * puyostack.GetColumn() + (x + 1)] = CHECKING;
 								checkagain = true;
 							}
 						}
@@ -430,9 +434,9 @@ public:
 						//(x-1,y)の判定
 						if (x > 0)
 						{
-							if (puyostack.GetValue(y, x - 1) == puyostack.GetValue(y, x) && field_array_check[y*puyostack.GetColumn() + (x - 1)] == NOCHECK)
+							if (puyostack.GetValue(y, x - 1) == puyostack.GetValue(y, x) && field_array_check[y * puyostack.GetColumn() + (x - 1)] == NOCHECK)
 							{
-								field_array_check[y*puyostack.GetColumn() + (x - 1)] = CHECKING;
+								field_array_check[y * puyostack.GetColumn() + (x - 1)] = CHECKING;
 								checkagain = true;
 							}
 						}
@@ -440,9 +444,9 @@ public:
 						//(x,y+1)の判定
 						if (y < puyostack.GetLine() - 1)
 						{
-							if (puyostack.GetValue(y + 1, x) == puyostack.GetValue(y, x) && field_array_check[(y + 1)*puyostack.GetColumn() + x] == NOCHECK)
+							if (puyostack.GetValue(y + 1, x) == puyostack.GetValue(y, x) && field_array_check[(y + 1) * puyostack.GetColumn() + x] == NOCHECK)
 							{
-								field_array_check[(y + 1)*puyostack.GetColumn() + x] = CHECKING;
+								field_array_check[(y + 1) * puyostack.GetColumn() + x] = CHECKING;
 								checkagain = true;
 							}
 						}
@@ -450,15 +454,15 @@ public:
 						//(x,y-1)の判定
 						if (y > 0)
 						{
-							if (puyostack.GetValue(y - 1, x) == puyostack.GetValue(y, x) && field_array_check[(y - 1)*puyostack.GetColumn() + x] == NOCHECK)
+							if (puyostack.GetValue(y - 1, x) == puyostack.GetValue(y, x) && field_array_check[(y - 1) * puyostack.GetColumn() + x] == NOCHECK)
 							{
-								field_array_check[(y - 1)*puyostack.GetColumn() + x] = CHECKING;
+								field_array_check[(y - 1) * puyostack.GetColumn() + x] = CHECKING;
 								checkagain = true;
 							}
 						}
 
 						//(x,y)を判定済みにする
-						field_array_check[y*puyostack.GetColumn() + x] = CHECKED;
+						field_array_check[y * puyostack.GetColumn() + x] = CHECKED;
 					}
 				}
 			}
@@ -466,7 +470,7 @@ public:
 
 		//判定済みの数をカウント
 		int puyocount = 0;
-		for (int i = 0; i < puyostack.GetLine()*puyostack.GetColumn(); i++)
+		for (int i = 0; i < puyostack.GetLine() * puyostack.GetColumn(); i++)
 		{
 			if (field_array_check[i] == CHECKED)
 			{
@@ -482,7 +486,7 @@ public:
 			{
 				for (int x = 0; x < puyostack.GetColumn(); x++)
 				{
-					if (field_array_check[y*puyostack.GetColumn() + x] == CHECKED)
+					if (field_array_check[y * puyostack.GetColumn() + x] == CHECKED)
 					{
 						puyostack.SetValue(y, x, NONE);
 
@@ -496,6 +500,30 @@ public:
 		delete[] field_array_check;
 
 		return vanishednumber;
+	}
+
+	// 宙に浮いたぷよを落下させる
+	bool DropFloatingPuyo(PuyoArrayStack &stack)
+	{
+		bool lock = true;
+		for (int x = 0; x < stack.GetColumn(); x++)
+		{
+			for (int y = 0; y < stack.GetLine() - 1; y++)
+			{
+				if ((stack.GetValue(y, x) != NONE) && stack.GetValue(y + 1, x) == NONE)
+				{
+					// 存在する(NONEでない)ぷよの下が空いている(NONE)
+					lock = true;
+					stack.SetValue(y + 1, x, stack.GetValue(y, x));
+					stack.SetValue(y, x, NONE);
+				}
+				else
+				{
+					lock = false;
+				}
+			}
+		}
+		return lock;
 	}
 };
 
@@ -665,8 +693,10 @@ int main(int argc, char **argv)
 				control.GeneratePuyo(active);
 			}
 		}
-		delay++;
-
+		if (!control.DropFloatingPuyo(stack))
+		{
+			delay++;
+		}
 		//表示
 		Display(active, stack);
 	}
