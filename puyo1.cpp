@@ -1,5 +1,4 @@
 //課題
-//2020/04/17
 
 #include <curses.h>
 #include <stdlib.h> // rand関数
@@ -525,7 +524,7 @@ public:
 	//回転
 	//PuyoArrayActiveクラスのprivateメンバ変数として int puyorotate を宣言し，これに回転状態を記憶させている．
 	//puyorotateにはコンストラクタ及びGeneratePuyo関数で値0を代入する必要あり．
-	void Rotate(PuyoArrayActive &puyoactive)
+	void Rotate(PuyoArrayActive &puyoactive, PuyoArrayStack &stack)
 	{
 		//フィールドをラスタ順に探索（最も上の行を左から右方向へチェックして，次に一つ下の行を左から右方向へチェックして，次にその下の行・・と繰り返す）し，先に発見される方をpuyo1, 次に発見される方をpuyo2に格納
 		puyocolor puyo1, puyo2;
@@ -647,6 +646,24 @@ public:
 		default:
 			break;
 		}
+
+		// 回転後にすでにあるぷよ(stack)と衝突するなら，回転を取り消す．
+		for (int y = 0; y < stack.GetLine(); y++)
+		{
+			for (int x = 0; x < stack.GetColumn(); x++)
+			{
+				if (stack.GetValue(y, x) != NONE)
+				{
+					// (x,y)にstackぷよが存在している
+					if (puyoactive.GetValue(y, x) != NONE)
+					{
+						// (x,y)にactiveぷよが存在している(衝突している)
+						puyoactive.SetValue(puyo1_y, puyo1_x, puyo1);
+						puyoactive.SetValue(puyo2_y, puyo2_x, puyo2);
+					}
+				}
+			}
+		}
 	}
 
 	// 宙に浮いたぷよを落下させる
@@ -671,6 +688,22 @@ public:
 			}
 		}
 		return lock;
+	}
+
+	bool GameOver(PuyoArrayStack &stack)
+	{
+		bool flag = false;
+
+		for (int x = 0; x < stack.GetColumn(); x++)
+		{
+			if (stack.GetValue(0, x) != NONE)
+			{
+				// 盤面頂上にぷよがあるときはゲームオーバー
+				flag = true;
+			}
+		}
+
+		return flag;
 	}
 };
 
@@ -712,7 +745,7 @@ void DisplayPuyo(PuyoArray &puyo, int y, int x)
 }
 
 //表示
-void Display(PuyoArrayActive &active, PuyoArrayStack &stack)
+void Display(PuyoArrayActive &active, PuyoArrayStack &stack, PuyoControl &control, int score, int rensa)
 {
 	//落下中ぷよ表示
 	for (int y = 0; y < active.GetLine(); y++)
@@ -745,9 +778,33 @@ void Display(PuyoArrayActive &active, PuyoArrayStack &stack)
 		}
 	}
 
+	init_pair(0, COLOR_WHITE, COLOR_BLACK);
+	init_pair(5, COLOR_YELLOW, COLOR_RED);
+
+	// ゲームオーバー表示
+	if (control.GameOver(stack))
+	{
+		char msg_gameover[256];
+		attrset(COLOR_PAIR(5));
+		sprintf(msg_gameover, "GAME OVER");
+		mvaddstr(4, COLS - 25, msg_gameover);
+	}
+
+	attrset(COLOR_PAIR(0));
+
 	char msg[256];
 	sprintf(msg, "Field: %d x %d, Puyo number: %03d", active.GetLine(), active.GetColumn(), count);
 	mvaddstr(2, COLS - 35, msg);
+
+	//スコア表示
+	char msg_score[256];
+	sprintf(msg_score, "Score: %d", score);
+	mvaddstr(8, COLS - 35, msg_score);
+
+	// 連鎖表示
+	char msg_rensa[256];
+	sprintf(msg_rensa, "Rensa: %d", rensa);
+	mvaddstr(9, COLS - 35, msg_rensa);
 
 	refresh();
 }
@@ -778,6 +835,10 @@ int main(int argc, char **argv)
 	PuyoArrayStack stack;
 	// Generate, Landing, MoveLeft, MoveRight, MoveDown
 	PuyoControl control;
+
+	int score = 0;
+	int vanished = 0;
+	int rensa = 0;
 
 	// 初期化処理
 	active.ChangeSize(LINES / 2, COLS / 2); //フィールドは画面サイズの縦横1/2にする
@@ -814,7 +875,7 @@ int main(int argc, char **argv)
 			break;
 		case 'z':
 			//ぷよ回転処理
-			control.Rotate(active);
+			control.Rotate(active, stack);
 			break;
 		default:
 			break;
@@ -835,9 +896,25 @@ int main(int argc, char **argv)
 			if (control.LandingPuyo(active, stack))
 			{
 				// 4つ以上つながったぷよを削除
-				control.VanishPuyo(stack);
+				// 削除したぷよの数だけ得点になる．
+				vanished = control.VanishPuyo(stack);
+				score += vanished;
 
-				//着地していたら新しいぷよ生成
+				// 連鎖回数*10の得点を加える．
+				if (vanished > 0)
+				{
+					rensa += 1;
+				}
+				else
+				{
+					rensa = 0;
+				}
+				if (rensa > 1)
+				{
+					score += (rensa - 1) * 10;
+				}
+
+				// ゲームオーバーではなく着地していたら新しいぷよ生成
 				control.GeneratePuyo(active);
 			}
 		}
@@ -846,7 +923,8 @@ int main(int argc, char **argv)
 			delay++;
 		}
 		//表示
-		Display(active, stack);
+		bool is_gameover = control.GameOver(stack);
+		Display(active, stack, control, score, rensa);
 	}
 
 	//画面をリセット
